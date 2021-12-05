@@ -20,7 +20,7 @@ interface ICurvePool {
 
 // import 'hardhat/console.sol';
 
-contract CurveBridge is IDefiBridge {
+contract Curve3PoolBridge is IDefiBridge {
     using SafeMath for uint256;
 
     address public immutable rollupProcessor;
@@ -56,7 +56,7 @@ contract CurveBridge is IDefiBridge {
             bool isAsync
         )
     {
-        require(msg.sender == rollupProcessor, "CurveBridge: INVALID_CALLER");
+        require(msg.sender == rollupProcessor, "Curve3PoolBridge: INVALID_CALLER");
         isAsync = false;
 
         int128 i;
@@ -69,7 +69,7 @@ contract CurveBridge is IDefiBridge {
         } else if (inputAssetA.erc20Address == TETHER_2) {
             i = 2;
         } else {
-            revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
+            revert("Curve3PoolBridge: INCOMPATIBLE_ASSET_PAIR");
         }
 
         if (outputAssetA.erc20Address == DAI_0) {
@@ -79,11 +79,11 @@ contract CurveBridge is IDefiBridge {
         } else if (outputAssetA.erc20Address == TETHER_2) {
             j = 2;
         } else {
-            revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
+            revert("Curve3PoolBridge: INCOMPATIBLE_ASSET_PAIR");
         }
 
         if (i == j) {
-            revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
+            revert("Curve3PoolBridge: INCOMPATIBLE_ASSET_PAIR");
         }
 
         require(
@@ -91,7 +91,7 @@ contract CurveBridge is IDefiBridge {
                 address(curvePool),
                 inputValue
             ),
-            "CurveBridge: APPROVE_FAILED"
+            "Curve3PoolBridge: APPROVE_FAILED"
         );
 
         curvePool.exchange(i, j, dx, 1);
