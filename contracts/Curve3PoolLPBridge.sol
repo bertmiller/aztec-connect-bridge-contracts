@@ -63,7 +63,7 @@ contract Curve3PoolLPBridge is IDefiBridge {
         require(msg.sender == rollupProcessor, "Curve3PoolLPBridge: INVALID_CALLER");
         isAsync = false;
 
-        uint256[N_COINS] amounts = [0, 0, 0, 0];
+        uint256[N_COINS] amounts;
 
         if (outputAssetA.erc20Address == MIM_LP_TOKEN) {
             _pool = MIM_POOL;
