@@ -14,6 +14,7 @@ interface ICurvePool {
         uint256[4] _amounts,
         uint256 _min_mint_amount
     ) external;
+    function coins(uint256 i) external view returns (address);
 }
 
 contract Curve3PoolLPBridge is IDefiBridge {
@@ -71,8 +72,7 @@ contract Curve3PoolLPBridge is IDefiBridge {
             revert("Curve3PoolLPBridge: INVALID_OUTPUT_ASSET_A");
         }
 
-
-        address coin = CurveMeta(_pool).coins(0)
+        address coin = curvePool(_pool).coins(0);
 
         if (inputAssetA.erc20Address == coin) {
             amount[0] = totalInputValue;
