@@ -54,7 +54,10 @@ contract CurveTricrypto2Bridge is IDefiBridge {
             bool isAsync
         )
     {
-        require(msg.sender == rollupProcessor, "CurveTricrypto2Bridge: INVALID_CALLER");
+        require(
+            msg.sender == rollupProcessor,
+            "CurveTricrypto2Bridge: INVALID_CALLER"
+        );
         isAsync = false;
 
         int128 i;
@@ -92,7 +95,7 @@ contract CurveTricrypto2Bridge is IDefiBridge {
             "CurveTricrypto2Bridge: APPROVE_FAILED"
         );
 
-        curvePool.exchange(i, j, dx, 1);
+        curvePool.exchange(i, j, inputValue, 1);
     }
 
     function canFinalise(
