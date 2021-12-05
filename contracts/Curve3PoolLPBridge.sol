@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright 2020 Spilsbury Holdings Ltd
-pragma solidity >=0.6.6 <0.8.0;
+pragma solidity >=0.6.6 <=0.8.0;
 pragma experimental ABIEncoderV2;
 
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
@@ -12,34 +12,40 @@ import {Types} from "./Types.sol";
 interface ICurvePool {
     function add_liquidity(
         address _pool,
-        uint256[4] _amounts, // N_ALL_COINS
+        uint256[4] memory _amounts, // N_ALL_COINS
         uint256 _min_mint_amount
-    ) external;
-    function remove_liquidity(
+    ) external returns (uint256);
+
+    function remove_liquidity_one_coin(
         address _pool,
         uint256 _burn_amount,
-        uint256[4] _min_amounts, // N_ALL_COINS
-    ) external returns (uint256[4]); // N_ALL_COINS
+        int128 _i,
+        uint256 _min_amount
+    ) external returns (uint256);
+
     function coins(uint256 i) external view returns (address);
+
+    function name() external view returns (string memory);
 }
 
 contract Curve3PoolLPBridge is IDefiBridge {
     using SafeMath for uint256;
 
     address public immutable rollupProcessor;
-
-    address constant MIM = "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3";
-    address constant 3CRV = "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490";
-
     int128 constant N_COINS = 2;
     int128 constant BASE_N_COINS = 3;
     int128 constant N_ALL_COINS = N_COINS + BASE_N_COINS - 1;
 
-    address constant DAI_1 = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-    address constant USDC_2 = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-    address constant USDT_3 = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+    address constant DAI_1 =
+        address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    address constant USDC_2 =
+        address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address constant USDT_3 =
+        address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     ICurvePool curvePool; // Update to Curve Pool
+
+    event CatchError(bytes reason);
 
     constructor(address _rollupProcessor, address _curvePool) public {
         rollupProcessor = _rollupProcessor;
@@ -66,45 +72,83 @@ contract Curve3PoolLPBridge is IDefiBridge {
             bool isAsync
         )
     {
-        require(msg.sender == rollupProcessor, "Curve3PoolLPBridge: INVALID_CALLER");
+        require(
+            msg.sender == rollupProcessor,
+            "Curve3PoolLPBridge: INVALID_CALLER"
+        );
         isAsync = false;
 
-        uint256[N_COINS] amounts;
-
-        if (outputAssetA.erc20Address == MIM_LP_TOKEN) {
-            _pool = MIM_POOL;
-        } else if (outputAssetA.erc20Address == MIM_LP_TOKEN) {
-        } else {
-            revert("Curve3PoolLPBridge: INVALID_OUTPUT_ASSET_A");
+        bool isInputLP = false;
+        bool isOutputLP = false;
+        try ICurvePool(inputAssetA.erc20Address).name() {
+            string memory name = ICurvePool(inputAssetA.erc20Address).name();
+            isInputLP = isCurveFi(name);
+        } catch (bytes memory reason) {
+            emit CatchError(reason);
         }
 
-        address coin = curvePool(_pool).coins(0);
+        try ICurvePool(outputAssetA.erc20Address).name() {
+            string memory name = ICurvePool(outputAssetA.erc20Address).name();
+            isOutputLP = isCurveFi(name);
+        } catch (bytes memory reason) {
+            emit CatchError(reason);
+        }
 
-        if (inputAssetA.erc20Address == coin) {
-            amount[0] = totalInputValue;
-        } else if (inputAssetA.erc20Address == DAI_1) {
-            amount[1] = totalInputValue;
-        } else if (inputAssetA.erc20Address == USDC_2) {
-            amount[2] = totalInputValue;
-        } else if (inputAssetA.erc20Address == USDT_3) {
-            amount[3] = totalInputValue;
-        } else {
-            revert("Curve3PoolLPBridge: INCOMPATIBLE_ASSET_A");
+        if (isOutputLP == isInputLP) {
+            revert("Curve3PoolLPBridge: INVALID_ASSET_PAIR");
         }
 
         require(
             IERC20(inputAssetA.erc20Address).approve(
-                address(curvePool),
+                outputAssetA.erc20Address,
                 totalInputValue
             ),
             "Curve3PoolLPBridge: APPROVE_FAILED"
         );
 
-        // FIXME: some reasonable value for min_mint_amount
-        outputValueA = curvePool.add_liquidity(_pool, amounts, 0);
+        if (isOutputLP) {
+            // The output is an LP contract, so we are adding liquidity
+            uint256[4] memory amounts;
+
+            address _pool = outputAssetA.erc20Address;
+            address coin = ICurvePool(_pool).coins(0);
+
+            if (inputAssetA.erc20Address == coin) {
+                amounts[0] = totalInputValue;
+            } else if (inputAssetA.erc20Address == DAI_1) {
+                amounts[1] = totalInputValue;
+            } else if (inputAssetA.erc20Address == USDC_2) {
+                amounts[2] = totalInputValue;
+            } else if (inputAssetA.erc20Address == USDT_3) {
+                amounts[3] = totalInputValue;
+            } else {
+                revert("Curve3PoolLPBridge: INCOMPATIBLE_ASSET_A");
+            }
+
+            outputValueA = curvePool.add_liquidity(_pool, amounts, 1);
+        } else {
+            // The input is an LP contract, so we are removing liquidity
+            int128 coin = 0;
+            address _pool = inputAssetA.erc20Address;
+
+            if (outputAssetA.erc20Address == DAI_1) {
+                coin = 1;
+            } else if (outputAssetA.erc20Address == USDC_2) {
+                coin = 2;
+            } else if (outputAssetA.erc20Address == USDT_3) {
+                coin = 3;
+            }
+
+            outputValueA = curvePool.remove_liquidity_one_coin(
+                _pool,
+                totalInputValue,
+                coin,
+                0
+            );
+        }
     }
 
-    function isCurveFi(string name) returns (bool) {
+    function isCurveFi(string memory name) internal returns (bool) {
         bytes memory name_b = bytes(name);
         bytes memory comp_b = bytes("Curve.fi");
 
@@ -112,10 +156,9 @@ contract Curve3PoolLPBridge is IDefiBridge {
             return false;
         }
 
-        uint i;
+        uint256 i;
         while (i < comp_b.length) {
-            if (name_b[i] != comp_b[i])
-                return false;
+            if (name_b[i] != comp_b[i]) return false;
             i++;
         }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright 2020 Spilsbury Holdings Ltd
-pragma solidity >=0.6.6 <0.8.0;
+pragma solidity >=0.6.6 <=0.8.0;
 pragma experimental ABIEncoderV2;
 
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
@@ -25,10 +25,14 @@ contract Curve3PoolBridge is IDefiBridge {
 
     address public immutable rollupProcessor;
 
-    address constant MIM_0 = "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3";
-    address constant DAI_1 = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-    address constant USDC_2 = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-    address constant TETHER_3 = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+    address constant MIM_0 =
+        address(0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3);
+    address constant DAI_1 =
+        address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    address constant USDC_2 =
+        address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address constant TETHER_3 =
+        address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     ICurvePool curvePool; // Update to Curve Pool
 

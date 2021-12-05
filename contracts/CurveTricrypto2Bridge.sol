@@ -23,9 +23,12 @@ contract CurveTricrypto2Bridge is IDefiBridge {
 
     address public immutable rollupProcessor;
 
-    address constant TETHER_0 = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-    address constant WBTC_1 = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
-    address constant WETH_2 = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+    address constant TETHER_0 =
+        address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    address constant WBTC_1 =
+        address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
+    address constant WETH_2 =
+        address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
     ICurvePool curvePool; // Update to Curve Pool
 
