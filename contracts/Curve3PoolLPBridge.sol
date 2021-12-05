@@ -104,6 +104,24 @@ contract Curve3PoolLPBridge is IDefiBridge {
         outputValueA = curvePool.add_liquidity(_pool, amounts, 0);
     }
 
+    function isCurveFi(string name) returns (bool) {
+        bytes memory name_b = bytes(name);
+        bytes memory comp_b = bytes("Curve.fi");
+
+        if (name_b.length < comp_b.length) {
+            return false;
+        }
+
+        uint i;
+        while (i < comp_b.length) {
+            if (name_b[i] != comp_b[i])
+                return false;
+            i++;
+        }
+
+        return true;
+    }
+
     function canFinalise(
         uint256 /*interactionNonce*/
     ) external view override returns (bool) {
