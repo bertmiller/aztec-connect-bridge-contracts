@@ -24,6 +24,8 @@ contract CurveBridge is IDefiBridge {
     using SafeMath for uint256;
 
     address public immutable rollupProcessor;
+    int128 public i;
+    int128 public j;
 
     ICurvePool curvePool; // Update to Curve Pool
 
@@ -61,61 +63,48 @@ contract CurveBridge is IDefiBridge {
             outputAssetA.erc20Address ==
             "0x0000000000000000000000000000000000000000"
         ) {
+            i = 0;
+            j = 1;
             // 0 and 1
-        } else if {
-          // 0 and 2
-        } else if (){
-          // 1 and 2
-        } else if (){
-          // 1 and 0
-        } else if (){
-          // 2 and 0
-        } else () {
-          // 2 and 1
-        }
-
-
-        // OLD CODE
-        if (
-            inputAssetA.assetType == Types.AztecAssetType.ETH &&
-            outputAssetA.assetType == Types.AztecAssetType.ERC20
-        ) {
-            address[] memory path = new address[](2);
-            path[0] = weth;
-            path[1] = outputAssetA.erc20Address;
-            amounts = curvePool.swapExactETHForTokens{value: inputValue}(
-                0,
-                path,
-                rollupProcessor,
-                deadline
-            );
-            outputValueA = amounts[1];
         } else if (
-            inputAssetA.assetType == Types.AztecAssetType.ERC20 &&
-            outputAssetA.assetType == Types.AztecAssetType.ETH
+            inputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000" &&
+            outputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000"
         ) {
-            address[] memory path = new address[](2);
-            path[0] = inputAssetA.erc20Address;
-            path[1] = weth;
-            require(
-                IERC20(inputAssetA.erc20Address).approve(
-                    address(curvePool),
-                    inputValue
-                ),
-                "CurveBridge: APPROVE_FAILED"
-            );
-            amounts = curvePool.swapExactTokensForETH(
-                inputValue,
-                0,
-                path,
-                rollupProcessor,
-                deadline
-            );
-            outputValueA = amounts[1];
+            // 0 and 2
+        } else if (
+            inputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000" &&
+            outputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000"
+        ) {
+            // 1 and 2
+        } else if (
+            inputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000" &&
+            outputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000"
+        ) {
+            // 1 and 0
+        } else if (
+            inputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000" &&
+            outputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000"
+        ) {
+            // 2 and 0
+        } else if (
+            inputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000" &&
+            outputAssetA.erc20Address ==
+            "0x0000000000000000000000000000000000000000"
+        ) {
+            // 2 and 1
         } else {
-            // TODO what about swapping tokens?
             revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
         }
+        curvePool.exchange(i, j, dx, 1);
     }
 
     function canFinalise(
