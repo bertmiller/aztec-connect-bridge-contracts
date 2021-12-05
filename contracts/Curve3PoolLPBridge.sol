@@ -11,9 +11,15 @@ import {Types} from "./Types.sol";
 
 interface ICurvePool {
     function add_liquidity(
-        uint256[4] _amounts,
+        address _pool,
+        uint256[4] _amounts, // N_ALL_COINS
         uint256 _min_mint_amount
     ) external;
+    function remove_liquidity(
+        address _pool,
+        uint256 _burn_amount,
+        uint256[4] _min_amounts, // N_ALL_COINS
+    ) external returns (uint256[4]); // N_ALL_COINS
     function coins(uint256 i) external view returns (address);
 }
 
