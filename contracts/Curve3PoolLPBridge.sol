@@ -10,10 +10,10 @@ import {IDefiBridge} from "./interfaces/IDefiBridge.sol";
 import {Types} from "./Types.sol";
 
 interface ICurvePool {
-    function add_liquidity{
+    function add_liquidity(
         uint256[4] _amounts,
         uint256 _min_mint_amount
-    } external;
+    ) external;
 }
 
 contract Curve3PoolLPBridge is IDefiBridge {
