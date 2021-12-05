@@ -29,9 +29,6 @@ contract CurveBridge is IDefiBridge {
     address constant USDC_1 = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
     address constant TETHER_2 = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
-    int128 public i;
-    int128 public j;
-
     ICurvePool curvePool; // Update to Curve Pool
 
     constructor(address _rollupProcessor, address _curvePool) public {
@@ -54,13 +51,16 @@ contract CurveBridge is IDefiBridge {
         payable
         override
         returns (
-            uint256 outputValueA,
+            uint256,
             uint256,
             bool isAsync
         )
     {
         require(msg.sender == rollupProcessor, "CurveBridge: INVALID_CALLER");
         isAsync = false;
+
+        int128 i;
+        int128 j;
 
         if (inputAssetA.erc20Address == DAI_0) {
             i = 0;
@@ -85,6 +85,14 @@ contract CurveBridge is IDefiBridge {
         if (i == j) {
             revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
         }
+
+        require(
+            IERC20(inputAssetA.erc20Address).approve(
+                address(curvePool),
+                inputValue
+            ),
+            "CurveBridge: APPROVE_FAILED"
+        );
 
         curvePool.exchange(i, j, dx, 1);
     }
