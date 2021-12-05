@@ -24,6 +24,11 @@ contract CurveBridge is IDefiBridge {
     using SafeMath for uint256;
 
     address public immutable rollupProcessor;
+
+    address constant DAI_0 = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+    address constant USDC_1 = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+    address constant TETHER_2 = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+
     int128 public i;
     int128 public j;
 
@@ -57,53 +62,30 @@ contract CurveBridge is IDefiBridge {
         require(msg.sender == rollupProcessor, "CurveBridge: INVALID_CALLER");
         isAsync = false;
 
-        if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
+        if (inputAssetA.erc20Address == DAI_0) {
             i = 0;
-            j = 1;
-            // 0 and 1
-        } else if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
-            // 0 and 2
-        } else if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
-            // 1 and 2
-        } else if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
-            // 1 and 0
-        } else if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
-            // 2 and 0
-        } else if (
-            inputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000" &&
-            outputAssetA.erc20Address ==
-            "0x0000000000000000000000000000000000000000"
-        ) {
-            // 2 and 1
+        } else if (inputAssetA.erc20Address == USDC_1) {
+            i = 1;
+        } else if (inputAssetA.erc20Address == TETHER_2) {
+            i = 2;
         } else {
             revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
         }
+
+        if (outputAssetA.erc20Address == DAI_0) {
+            j = 0;
+        } else if (outputAssetA.erc20Address == USDC_1) {
+            j = 1;
+        } else if (outputAssetA.erc20Address == TETHER_2) {
+            j = 2;
+        } else {
+            revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
+        }
+
+        if (i == j) {
+            revert("CurveBridge: INCOMPATIBLE_ASSET_PAIR");
+        }
+
         curvePool.exchange(i, j, dx, 1);
     }
 
