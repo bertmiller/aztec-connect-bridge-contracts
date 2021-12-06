@@ -2,11 +2,11 @@
 
 0xFawkes and I implemented a series of Aztec Bridge Contracts:
 
-Swap stablecoins on Curve's 3pool (USDC/DAI/USDT)
-Swap ETH/WBTC/USDT on Curve's TriCrypto2 (USDT/WBTC/WETH)
-Swap stablecoins on Curve's MIM pool (MIM/USDC/DAI/USDT)
-Add or remove liquidity on any Curve 3pool meta pool (e.g. MIM, LUSD, alUSD, FEI, etc)
-... more to come
+- Swap stablecoins on Curve's 3pool (USDC/DAI/USDT)
+- Swap ETH/WBTC/USDT on Curve's TriCrypto2 (USDT/WBTC/WETH)
+- Swap stablecoins on Curve's MIM pool (MIM/USDC/DAI/USDT)
+- Add or remove liquidity on any Curve 3pool meta pool (e.g. MIM, LUSD, alUSD, FEI, etc)
+- ... more to come
 
 
 The add and remove liquidity contract for Curve's 3pool meta pools was the most complicated of these, but was fun. To remove liquidity, users need to input LP tokens and attempt to output DAI/USDC/USDT or the base stablecoin of a 3pool meta pool. Similarly, to add liquidity users need to input a stablecoin and specify the LP token of the pool that they would like to add liquidity to.
